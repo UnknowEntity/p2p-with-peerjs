@@ -15,6 +15,7 @@
     "http": "0.0.1-security",
     "minimist": "^1.2.4",
     "opencollective": "^1.0.3",
-    "peerjs": "^1.2.0"
+    "peerjs": "^1.2.0",
+    "peerjs-nodejs": "^1.1.3"
   }
 }

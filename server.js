@@ -2,7 +2,7 @@ var express = require("express");
 var bodyParser = require("body-parser");
 var app = express();
 var http = require("http").Server(app);
-var Peer = require("peerjs");
+var Peer = require("peerjs-nodejs");
 
 const PORT = 3000;
 
