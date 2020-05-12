@@ -18,26 +18,32 @@ var peer = new Peer(key);
 
 var getConnect = (remotePeerId) => {
   var conn = peer.connect(remotePeerId);
+  conn.serialization = "json";
+  console.log("Trying to connected with peer: " + conn.peer);
+  peerList.push(conn);
   handleConnection(conn);
 };
 
 peer.on("connection", function (conn) {
+  conn.serialization = "json";
   console.log("Connected with peer: " + conn.peer);
+  peerList.push(conn);
   handleConnection(conn);
-  conn.send({ type: 200, content: "connection confirm" });
 });
 
 var handleConnection = (conn) => {
   conn.on("open", function () {
+    conn.send({ type: 200, content: "connection confirm" });
     conn.on("data", (data) => {
+      console.log(`Data send: type ${data.type}`);
       if (data.type === 200) {
         console.log(data.content);
-        if (peerList.length > 1) {
+        if (peerList.length > 0) {
           conn.send({ type: 300, peerList });
           broadcastMessage({ type: 400, remoteId: conn.peer });
         }
       } else if (data.type === 300) {
-        peerList = data.peerList;
+        peerList = [...peerList, ...data.peerList];
         console.log("recive peers list");
       } else if (data.type === 400) {
         getConnect(data.remoteId);
@@ -49,20 +55,21 @@ var handleConnection = (conn) => {
 
     conn.on("error", function () {
       // handle error
-      connectionError(conn);
+      //connectionError(conn);
+      console.log(`Node ${conn.peer} error`);
     });
 
     conn.on("close", function () {
       // Handle connection closed
-      connectionClose(conn);
+      //connectionClose(conn);
+      console.log(`Node ${conn.peer} closed`);
     });
-    peerList.push({ removeId: conn.peer, connection: conn });
   });
 };
 
 var broadcastMessage = (message) => {
   for (var i = 0; i < peerList.length; i++) {
-    peerList[i].connection.send(message);
+    peerList[i].send(message);
   }
 };
 
@@ -73,10 +80,12 @@ app.get("/id", (req, res) => {
 app.get("/new_node", (req, res) => {
   const { remoteId } = req.query;
   getConnect(remoteId);
+  res.json({ msg: "ok" });
 });
 
 app.get("/hello", (req, res) => {
   broadcastMessage({ type: 500 });
+  res.json(peerList.length);
 });
 
 var server = http.listen(PORT, () => {
