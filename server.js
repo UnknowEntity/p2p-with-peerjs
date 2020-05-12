@@ -22,9 +22,9 @@ var getConnect = (remotePeerId) => {
 };
 
 peer.on("connection", function (conn) {
-  conn.send({ type: 200, content: "connection confirm" });
   console.log("Connected with peer: " + conn.peer);
   handleConnection(conn);
+  conn.send({ type: 200, content: "connection confirm" });
 });
 
 var handleConnection = (conn) => {
@@ -61,8 +61,8 @@ var handleConnection = (conn) => {
 };
 
 var broadcastMessage = (message) => {
-  for (var i = 0; i < connections.length; i++) {
-    connections[i].send(message);
+  for (var i = 0; i < peerList.length; i++) {
+    peerList[i].connection.send(message);
   }
 };
 
