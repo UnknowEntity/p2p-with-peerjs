@@ -11,6 +11,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 var peerList = [];
+var firstContact = false;
 
 const key = `Node-${Date.now()}`;
 
@@ -27,18 +28,29 @@ var getConnect = (remotePeerId) => {
 peer.on("connection", function (conn) {
   conn.serialization = "json";
   console.log("Connected with peer: " + conn.peer);
+  conn.send({
+    type: 200,
+    content: "connection confirm",
+    lenght: peerList.length,
+  });
   peerList.push(conn);
   handleConnection(conn);
 });
 
 var handleConnection = (conn) => {
   conn.on("open", function () {
-    conn.send({ type: 200, content: "connection confirm" });
     conn.on("data", (data) => {
       console.log(`Data send: type ${data.type}`);
+
       if (data.type === 200) {
         console.log(data.content);
-        if (peerList.length > 0) {
+        conn.send({ type: 210, content: "callback confirm" });
+        if (data.lenght === 0 && peerList.lenght > 1) {
+          broadcastMessage({ type: 400, remoteId: conn.peer });
+        }
+      } else if (data.type === 210) {
+        console.log(data.content);
+        if (peerList.lenght > 1) {
           broadcastMessage({ type: 400, remoteId: conn.peer });
         }
       } else if (data.type === 400) {
