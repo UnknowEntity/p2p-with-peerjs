@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 var peerList = [];
 
-const key = Date.now();
+const key = `Node-${Date.now()}`;
 
 var peer = new Peer(key);
 
@@ -39,15 +39,13 @@ var handleConnection = (conn) => {
       if (data.type === 200) {
         console.log(data.content);
         if (peerList.length > 0) {
-          conn.send({ type: 300, peerList });
           broadcastMessage({ type: 400, remoteId: conn.peer });
         }
-      } else if (data.type === 300) {
-        peerList = [...peerList, ...data.peerList];
-        console.log("recive peers list");
       } else if (data.type === 400) {
-        getConnect(data.remoteId);
-        console.log("connect to new peer");
+        if (data.remoteId !== key) {
+          getConnect(data.remoteId);
+          console.log("connect to new peer");
+        }
       } else if (data.type === 500) {
         console.log(`Node ${key} said hello`);
       }
